@@ -134,7 +134,6 @@ class MSSQL(object):
             # moving down and deleting from history
             sql = "delete from %s where version = ?;" % (self.__version_table)
 
-        print (sql)
         db = self.__mssql_connect()
         cursor = db.cursor()
         try:
@@ -158,7 +157,7 @@ class MSSQL(object):
         version = cursor.execute("select top 1 version from %s order by id desc" % self.__version_table).fetchone() or 0
         cursor.close()
         db.close()
-        return version
+        return version.version
 
     def get_all_schema_versions(self):
         versions = []
@@ -166,7 +165,7 @@ class MSSQL(object):
         cursor = db.cursor()
         all_versions = cursor.execute("select version from %s order by id;" % self.__version_table).fetchall()
         for version in all_versions:
-            versions.append(version['version'])
+            versions.append(version.version)
         cursor.close()
         db.close()
         versions.sort()
@@ -176,7 +175,7 @@ class MSSQL(object):
         db = self.__mssql_connect()
         cursor = db.cursor()
         result = cursor.execute("select id from %s where version = '%s' order by id desc;" % (self.__version_table, version)).fetchone()
-        _id = result and int(result['id']) or None
+        _id = result and int(result.id) or None
         cursor.close()
         db.close()
         return _id
@@ -185,7 +184,7 @@ class MSSQL(object):
         db = self.__mssql_connect()
         cursor = db.cursor()
         result = cursor.execute("select version from %s where label = '%s' order by id desc" % (self.__version_table, label)).fetchone()
-        version = result and result['version'] or None
+        version = result and result.version or None
         cursor.close()
         db.close()
         return version
@@ -196,12 +195,12 @@ class MSSQL(object):
         cursor = db.cursor()
         all_migrations = cursor.execute("select id, version, label, name, cast(sql_up as text) as sql_up, cast(sql_down as text) as sql_down from %s order by id;" % self.__version_table).fetchall()
         for migration_db in all_migrations:
-            migration = Migration(id = int(migration_db['id']),
-                                  version = migration_db['version'] and str(migration_db['version']) or None,
-                                  label = migration_db['label'] and str(migration_db['label']) or None,
-                                  file_name = migration_db['name'] and str(migration_db['name']) or None,
-                                  sql_up = Migration.ensure_sql_unicode(migration_db['sql_up'], self.__mssql_script_encoding),
-                                  sql_down = Migration.ensure_sql_unicode(migration_db['sql_down'], self.__mssql_script_encoding))
+            migration = Migration(id = migration_db.id,
+                                  version = migration_db.version or None,
+                                  label = migration_db.label or None,
+                                  file_name = migration_db.name or None,
+                                  sql_up = Migration.ensure_sql_unicode(migration_db.sql_up, self.__mssql_script_encoding),
+                                  sql_down = Migration.ensure_sql_unicode(migration_db.sql_down, self.__mssql_script_encoding))
             migrations.append(migration)
         cursor.close()
         db.close()
