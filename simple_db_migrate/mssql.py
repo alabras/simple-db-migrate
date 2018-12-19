@@ -154,10 +154,13 @@ class MSSQL(object):
     def get_current_schema_version(self):
         db = self.__mssql_connect()
         cursor = db.cursor()
-        version = cursor.execute("select top 1 version from %s order by id desc" % self.__version_table).fetchone() or 0
+        version = cursor.execute("select top 1 version from %s order by id desc" % self.__version_table).fetchone()
         cursor.close()
         db.close()
-        return version.version
+        if version == None:
+            return 0
+        else:
+            return version.version
 
     def get_all_schema_versions(self):
         versions = []
